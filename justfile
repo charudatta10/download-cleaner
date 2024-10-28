@@ -1,4 +1,4 @@
-#    <one line to give the program's name and a brief idea of what it does.>  
+#    clean download folder  
 #    Copyright © 2024 Charudatta
 #
 #    This program is free software: you can redistribute it and/or modify
@@ -18,36 +18,21 @@
 
 set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
 
+local__path := "C:/Users/$env:username/Documents/GitHub/"
+
 default:
-    @just --choose
+    @just --list
 
 # create files and directories
 init:
     #!pwsh
-    git init
-    New-Item -ItemType "file" -Path ".gitattribute", "main.py", "requirements.json", "config.json"
-    New-Item -ItemType "directory" -Path "archives", "docs", "src", "tests"
-    New-Item -ItemType "file" -Path .\* -Name "__init__.py" -ErrorAction SilentlyContinue
-    gig gen python > .gitignore 
-    Add-LicenseHeader
-
-# set configuration variables
-config:
-    #!pwsh
-    config.json >> .gitignore
-    Set-EnvFromJson
+    $ProjectName = Read-Host "Enter your project name"
+    Initialize-Project -ProjectName $ProjectName
 
 # add documentation to repo
 docs:
     #!pwsh
-    conda activate blog
-    python -m mkdocs new .
-
-# genearte and readme to repo    
-readme:
-    #!pwsh
-    conda activate w
-    python C:/Users/$env:username/Documents/GitHub/readmeGen/main.py
+    mkdocs build
 
 # version control repo with git
 commit message="init":
@@ -59,19 +44,47 @@ commit message="init":
 exe file_name:
     #!pwsh
     pyinstaller src/{{file_name}} --onefile
-
-# run python unit test 
-tests:
+ 
+# exit just file
+quit:
     #!pwsh
-    conda activate webdev
-    python -m unittest discover -s tests
+    write-Host "Copyright © 2024 Charudatta"
+    
+# deploy application
+deploy:
+    #!pwsh
+    $CommitMessage = Read-Host "Enter your commit message"
+    Invoke-DeployChecks -CommitMessage $CommitMessage
+
+# setup logging
+setup-logging:
+    #!pwsh
+    Initialize-LoggingConfig -LogLevel "DEBUG"
+
+# view logs
+view-logs:
+    #!pwsh
+    Get-Content -Path "app.log" -Tail 10
+
+# clean up
+clean:
+    #!pwsh
+    Remove-Item -Recurse -Force dist, build, *.egg-info
+
+# project mangement add task and todos 
+tasks:
+    #!pwsh
+    python {{local__path}}"project-manager/src/project-manager-cli"
 
 # Add custom tasks, enviroment variables
-run: 
+
+# run project
+run:
     #!pwsh
     conda activate webdev
-    python main.py
+    python run.py
 
+# clean download folder
 move:
     #!pwsh
     p src/move_file.py
